@@ -1,0 +1,241 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                   POS SYSTEM - ARCHITECTURE DIAGRAM                            ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           WEB BROWSER / CLIENT LAYER                             │
+│                                                                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
+│  │  Dashboard   │  │   Catalog    │  │  Shopping    │  │   Reports    │        │
+│  │   Page       │  │   Page       │  │   Cart Page  │  │   Page       │        │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘        │
+│                                                                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        ↓
+                              HTTP Requests / Responses
+                                        ↓
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        DJANGO WEB APPLICATION LAYER                              │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │ URL Router (pos_system/urls.py)                                             │ │
+│  │ ├─ / → dashboard                                                            │ │
+│  │ ├─ /catalog/ → product listing                                              │ │
+│  │ ├─ /cart/ → shopping cart                                                   │ │
+│  │ ├─ /sales-report/ → sales view                                              │ │
+│  │ └─ /restock-alerts/ → alerts view                                           │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                        ↓                                         │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │ View Layer (inventory/views.py) - 13 View Classes                            │ │
+│  │ ├─ DashboardView          │─ ProductCatalogView      │─ CartView            │ │
+│  │ ├─ AddProductView         │─ EditProductView         │─ CheckoutView        │ │
+│  │ ├─ ReceiptView            │─ SalesReportView         │─ RestockAlertsView   │ │
+│  │ ├─ ResolveAlertView       │─ ManageCategoriesView    │─ AddCategoryView     │ │
+│  │ └─ AddToCartView & RemoveFromCartView                                        │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                        ↓                                         │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │ Form Layer (inventory/forms.py)                                              │ │
+│  │ ├─ CategoryForm        │─ ProductForm         │─ SearchForm                 │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                        ↓                                         │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │ Template Layer (templates/)                                                  │ │
+│  │ ├─ base.html (Master Template)                                               │ │
+│  │ ├─ dashboard.html     ├─ catalog.html        ├─ cart.html                  │ │
+│  │ ├─ receipt.html       ├─ sales_report.html   ├─ restock_alerts.html        │ │
+│  │ ├─ add_product.html   ├─ edit_product.html   ├─ categories.html            │ │
+│  │ └─ add_category.html                                                         │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                        ↓                                         │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │ Model Layer (inventory/models.py) - ORM                                      │ │
+│  │                                                                               │ │
+│  │  ┌──────────────┐    ┌──────────────┐                                       │ │
+│  │  │ Category     │    │ Product      │                                       │ │
+│  │  ├─ id         │    ├─ id          │                                       │ │
+│  │  ├─ name       │◄───┤─ category_id │                                       │ │
+│  │  ├─ description│    ├─ name        │                                       │ │
+│  │  └─ timestamps │    ├─ sku         │                                       │ │
+│  │                │    ├─ price       │                                       │ │
+│  │                │    ├─ quantity    │                                       │ │
+│  │                │    ├─ min_stock   │                                       │ │
+│  │                │    └─ timestamps  │                                       │ │
+│  │                │          ▲                                                │ │
+│  │                │          │                                                │ │
+│  │  ┌──────────────────┐    │    ┌───────────────┐                           │ │
+│  │  │ RestockAlert     │    │    │ Sale          │                           │ │
+│  │  ├─ id             │    │    ├─ id           │                           │ │
+│  │  ├─ product_id ────┼────┘    ├─ sale_date    │                           │ │
+│  │  ├─ status         │         ├─ total_amount │                           │ │
+│  │  ├─ current_stock  │         ├─ items_count  │                           │ │
+│  │  ├─ min_stock      │         └─ created_at   │                           │ │
+│  │  └─ timestamps     │              │                                       │ │
+│  │                    │              │                                       │ │
+│  │                    │              │  ┌──────────────┐                     │ │
+│  │                    │              └──┤ SaleItem     │                     │ │
+│  │                    │                 ├─ id          │                     │ │
+│  │                    │                 ├─ sale_id     │                     │ │
+│  │                    │                 ├─ product_id  │                     │ │
+│  │                    │                 ├─ quantity    │                     │ │
+│  │                    │                 ├─ unit_price  │                     │ │
+│  │                    │                 └─ subtotal    │                     │ │
+│  │                    └──────────────────────────────────                     │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                        ↓                                         │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        ↓
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          DATABASE LAYER                                          │
+│                                                                                   │
+│  ┌──────────────────────────────────────────────────────────────────────────┐   │
+│  │ PostgreSQL / SQLite Database                                             │   │
+│  │                                                                           │   │
+│  │ Tables:                                                                  │   │
+│  │ • inventory_category       - Store product categories                    │   │
+│  │ • inventory_product        - Store product information                   │   │
+│  │ • inventory_sale           - Store sale transactions                     │   │
+│  │ • inventory_saleitem       - Store sale line items                       │   │
+│  │ • inventory_restockalert   - Store restock alerts                        │   │
+│  │                                                                           │   │
+│  │ Additional:                                                              │   │
+│  │ • django_session           - User sessions                               │   │
+│  │ • auth_user                - User authentication                         │   │
+│  │ • django_admin_log         - Admin actions logging                       │   │
+│  └──────────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                           DATA FLOW EXAMPLES                                   ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+1. PRODUCT CATALOG FLOW:
+   ┌─────────────┐
+   │ User clicks │
+   │  Catalog    │
+   └──────┬──────┘
+          │
+          ↓
+   ┌────────────────────────────────────┐
+   │ GET /catalog/ request              │
+   └──────┬──────────────────────────────┘
+          │
+          ↓
+   ┌────────────────────────────────────┐
+   │ ProductCatalogView processes       │
+   │ - Fetch products from DB           │
+   │ - Apply filters                    │
+   └──────┬──────────────────────────────┘
+          │
+          ↓
+   ┌────────────────────────────────────┐
+   │ Render catalog.html template       │
+   │ with product data                  │
+   └──────┬──────────────────────────────┘
+          │
+          ↓
+   ┌─────────────┐
+   │ Display     │
+   │ to user     │
+   └─────────────┘
+
+2. CHECKOUT FLOW:
+   ┌──────────────┐
+   │ User clicks  │
+   │  Checkout    │
+   └──────┬───────┘
+          │
+          ↓
+   ┌──────────────────────────────────┐
+   │ CheckoutView processes           │
+   │ - Validate stock                 │
+   │ - Calculate total                │
+   └──────┬───────────────────────────┘
+          │
+          ↓
+   ┌──────────────────────────────────┐
+   │ Create Sale record               │
+   │ - Store transaction              │
+   └──────┬───────────────────────────┘
+          │
+          ↓
+   ┌──────────────────────────────────┐
+   │ Create SaleItem records          │
+   │ - Store each item sold           │
+   └──────┬───────────────────────────┘
+          │
+          ↓
+   ┌──────────────────────────────────┐
+   │ Update Product quantities        │
+   │ - Reduce stock                   │
+   └──────┬───────────────────────────┘
+          │
+          ↓
+   ┌──────────────────────────────────┐
+   │ Check for low stock              │
+   │ - Create RestockAlerts if needed │
+   └──────┬───────────────────────────┘
+          │
+          ↓
+   ┌──────────────────────────────────┐
+   │ Generate Receipt View            │
+   │ - Display transaction details    │
+   └──────┬───────────────────────────┘
+          │
+          ↓
+   ┌────────────┐
+   │ Show to    │
+   │ user       │
+   └────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                        DEPLOYMENT ARCHITECTURE                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+DEVELOPMENT SETUP:
+┌─────────────────┐
+│ Local Machine   │
+│                 │
+│ ┌─────────────┐ │
+│ │ Browser     │ │
+│ └──────┬──────┘ │
+│        │        │
+│ ┌──────▼──────────────────┐
+│ │ Django Dev Server       │
+│ │ (localhost:8000)        │
+│ └──────┬──────────────────┘
+│        │
+│ ┌──────▼──────────────────┐
+│ │ SQLite Database         │
+│ │ (db.sqlite3)            │
+│ └─────────────────────────┘
+│                 │
+└─────────────────┘
+
+PRODUCTION SETUP (PostgreSQL):
+┌────────────────────────────────────────┐
+│ Web Server (Nginx/Apache)              │
+│ ┌──────────────────────────────────┐   │
+│ │ Browser Requests                 │   │
+│ └────────────┬─────────────────────┘   │
+└─────────────┼────────────────────────────┘
+              │
+┌─────────────▼────────────────────────────┐
+│ Application Server (Gunicorn/uWSGI)     │
+│ ┌──────────────────────────────────┐    │
+│ │ Django Application               │    │
+│ │ ├─ Views                         │    │
+│ │ ├─ Forms                         │    │
+│ │ └─ Models                        │    │
+│ └────────────┬─────────────────────┘    │
+└─────────────┼──────────────────────────┘
+              │
+┌─────────────▼────────────────────────────┐
+│ Database Server (PostgreSQL)             │
+│ ├─ Category Table                        │
+│ ├─ Product Table                         │
+│ ├─ Sale Table                            │
+│ ├─ SaleItem Table                        │
+│ └─ RestockAlert Table                    │
+└──────────────────────────────────────────┘
+

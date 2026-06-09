@@ -1,0 +1,60 @@
+name: Django Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: ufash_db_test
+          POSTGRES_USER: ufash_user
+          POSTGRES_PASSWORD: testpass123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run migrations
+      env:
+        DATABASE_URL: postgresql://ufash_user:testpass123@localhost:5432/ufash_db_test
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: False
+      run: |
+        python manage.py migrate
+
+    - name: Run tests
+      env:
+        DATABASE_URL: postgresql://ufash_user:testpass123@localhost:5432/ufash_db_test
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: False
+      run: |
+        python manage.py test
+
+    - name: Check code style
+      run: |
+        pip install flake8
+        flake8 inventory pos_system --max-line-length=120 --exclude=migrations

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Restock Alerts - POS System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>
+                <i class="bi bi-exclamation-triangle"></i> Restock Alerts
+            </h1>
+            <hr style="border-top: 3px solid #d4a574;">
+        </div>
+    </div>
+
+    {% if alerts %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>SKU</th>
+                                    <th>Current Stock</th>
+                                    <th>Minimum Stock</th>
+                                    <th>Alert Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alert in alerts %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ alert.product.name }}</strong>
+                                    </td>
+                                    <td>{{ alert.product.sku }}</td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ alert.current_stock }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">{{ alert.minimum_stock }}</span>
+                                    </td>
+                                    <td>{{ alert.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ alert.get_status_display }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'inventory:edit_product' alert.product.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            <form method="POST" action="{% url 'inventory:resolve_alert' alert.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                                    <i class="bi bi-check-circle"></i> Resolve
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-success text-center" role="alert">
+                    <i class="bi bi-check-circle"></i>
+                    <h4>All Products are in Stock</h4>
+                    <p>No restock alerts at this time. All products have sufficient inventory.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

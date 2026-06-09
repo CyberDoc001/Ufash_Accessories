@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - UFASH ACCESSORIES{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-center mb-4">My Profile</h2>
+                    
+                    <div class="profile-section">
+                        <div class="profile-avatar text-center mb-4">
+                            <div class="avatar-circle mx-auto mb-3">
+                                <i class="fas fa-user-circle fa-5x text-primary"></i>
+                            </div>
+                        </div>
+
+                        <div class="profile-info">
+                            <div class="info-item mb-3">
+                                <label class="text-muted"><i class="fas fa-user"></i> Username</label>
+                                <p class="h5 fw-bold">{{ user.username }}</p>
+                            </div>
+
+                            <div class="info-item mb-3">
+                                <label class="text-muted"><i class="fas fa-envelope"></i> Email</label>
+                                <p class="h5 fw-bold">{{ user.email }}</p>
+                            </div>
+
+                            {% if user.first_name or user.last_name %}
+                                <div class="info-item mb-3">
+                                    <label class="text-muted"><i class="fas fa-id-card"></i> Full Name</label>
+                                    <p class="h5 fw-bold">{{ user.get_full_name|default:"Not provided" }}</p>
+                                </div>
+                            {% endif %}
+
+                            <div class="info-item mb-3">
+                                <label class="text-muted"><i class="fas fa-calendar"></i> Member Since</label>
+                                <p class="h5 fw-bold">{{ member_since|date:"F d, Y" }}</p>
+                            </div>
+
+                            <div class="info-item mb-4">
+                                <label class="text-muted"><i class="fas fa-clock"></i> Last Login</label>
+                                <p class="h5 fw-bold">
+                                    {% if user.last_login %}
+                                        {{ user.last_login|date:"F d, Y - H:i" }}
+                                    {% else %}
+                                        This is your first login
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="action-buttons">
+                            <a href="{% url 'inventory:dashboard' %}" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-home"></i> Back to Dashboard
+                            </a>
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+    }
+    .avatar-circle {
+        width: 150px;
+        height: 150px;
+        margin-left: auto;
+        margin-right: auto;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    .profile-info {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    .info-item label {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .info-item p {
+        margin-bottom: 0;
+        color: #333;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white !important;
+    }
+</style>
+{% endblock %}

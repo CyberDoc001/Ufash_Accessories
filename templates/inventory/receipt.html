@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Receipt - POS System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>
+                        <i class="bi bi-receipt"></i> Sale Receipt
+                    </h2>
+                    <p class="text-muted mb-0">Receipt #{{ sale.id }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Sale Date:</strong> {{ sale.sale_date }}</p>
+                            <p><strong>Sale Time:</strong> {{ sale.sale_time }}</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <p><strong>Receipt ID:</strong> #{{ sale.id }}</p>
+                            <p><strong>Total Items:</strong> {{ sale.items_count }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="table-responsive mb-4">
+                        <table class="table table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in sale.items.all %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ item.product.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">SKU: {{ item.product.sku }}</small>
+                                    </td>
+                                    <td class="text-end">₦{{ item.unit_price|floatformat:2|intcomma }}</td>
+                                    <td class="text-end">{{ item.quantity }}</td>
+                                    <td class="text-end">
+                                        <strong>₦{{ item.subtotal|floatformat:2|intcomma }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="mb-2">
+                                <span>Subtotal:</span>
+                                <span class="float-end">₦{{ sale.total_amount|floatformat:2|intcomma }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <span>Discount:</span>
+                                <span class="float-end">₦0.00</span>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <strong style="font-size: 1.2rem;">Total Amount:</strong>
+                                <strong style="float-end; font-size: 1.5rem; color: #d4a574;">₦{{ sale.total_amount|floatformat:2|intcomma }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center mb-4">
+                        <p class="text-muted">Thank you for your purchase!</p>
+                        <p class="text-muted small">UFASH ACCESSORIES - Premium Phone & Laptop Accessories</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="bi bi-printer"></i> Print Receipt
+                        </button>
+                        <a href="{% url 'inventory:catalog' %}" class="btn btn-secondary">
+                            <i class="bi bi-bag"></i> Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .btn {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}

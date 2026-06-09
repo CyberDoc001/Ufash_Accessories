@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Product Catalog - POS System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>
+                    <i class="bi bi-bag"></i> Product Catalog
+                </h1>
+                <a href="{% url 'inventory:add_product' %}" class="btn btn-secondary">
+                    <i class="bi bi-plus-circle"></i> Add New Product
+                </a>
+            </div>
+            <hr style="border-top: 3px solid #d4a574;">
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" name="query" class="form-control" placeholder="Search by product name or SKU..." value="{{ request.GET.query }}">
+                        </div>
+                        <div class="col-md-4">
+                            <select name="category" class="form-control">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if category.id|stringformat:"s" == request.GET.category %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if products %}
+            {% for product in products %}
+            <div class="col-md-4 mb-4">
+                <div class="product-card">
+                    {% if product.image %}
+                        <div class="product-image-wrapper mb-3 text-center">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded" style="max-height:200px; width:auto; object-fit:cover;">
+                        </div>
+                    {% endif %}
+                    <div class="product-info">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="text-muted small">SKU: {{ product.sku }}</p>
+                        
+                        {% if product.category %}
+                            <span class="badge bg-light text-dark mb-2">{{ product.category.name }}</span>
+                        {% endif %}
+                        
+                        <div class="product-price mt-2">₦{{ product.price|floatformat:2|intcomma }}</div>
+                        
+                        <div class="product-stock mt-2">
+                            {% if product.is_low_stock %}
+                                <span class="stock-badge low">
+                                    <i class="bi bi-exclamation-circle"></i> Stock: {{ product.quantity }}
+                                </span>
+                            {% else %}
+                                <span class="stock-badge good">
+                                    <i class="bi bi-check-circle"></i> Stock: {{ product.quantity }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if product.description %}
+                            <p class="small mt-2 text-muted">{{ product.description|truncatewords:15 }}</p>
+                        {% endif %}
+
+                        <div class="mt-3">
+                            <form method="POST" action="{% url 'inventory:add_to_cart' product.id %}">
+                                {% csrf_token %}
+                                <div class="input-group mb-2">
+                                    <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ product.quantity }}">
+                                    <button class="btn btn-primary" type="submit" {% if product.quantity == 0 %}disabled{% endif %}>
+                                        <i class="bi bi-cart-plus"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </form>
+                            <a href="{% url 'inventory:edit_product' product.id %}" class="btn btn-sm btn-outline-secondary w-100">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No products found. <a href="{% url 'inventory:add_product' %}">Add one now!</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
